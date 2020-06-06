@@ -1,0 +1,16 @@
+syntax="proto3";
+package com.objects;
+
+message Token {
+    repeated string measurements = 1;
+    repeated string participants = 2;
+}
+
+message Message{
+    string message = 1;
+}
+
+service NodeServices {
+    rpc sendToken(Token) returns (Message);
+    rpc sendMessage(Message) returns(Message);
+}
