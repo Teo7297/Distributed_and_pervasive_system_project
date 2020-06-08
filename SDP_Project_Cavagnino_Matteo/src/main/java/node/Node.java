@@ -28,17 +28,18 @@ public class Node {
     private static final String ADD_NODE_PATH = "http://localhost:1337/nodes/add";
     private static final String REMOVE_NODE_PATH = "http://localhost:1337/nodes/remove";
     public static final String PUBLISH_MEASUREMENT_PATH = "http://localhost:1337/measurements/publish";
+    private static final long TIMER_CAP = 100000L;
 
     private final BufferImpl buffer;
     private final List<beans.Node> network;
     private final List<String> idList;
-    private final int port;
+    private int port;
     private String id;
     private String addr;
     private ServerGRPC serverGRPC;
     private beans.Node target;
     private boolean exitFlag;
-    private TimerTask timerTask;
+    private Timer timer;
 
     public Node(String id, int port) {
         this.id = id;
@@ -53,6 +54,7 @@ public class Node {
         this.network = new ArrayList<>();
         this.idList = new ArrayList<>();
         this.exitFlag = false;
+
     }
 
     public static void main(String[] args) {
@@ -69,23 +71,24 @@ public class Node {
         new PM10Simulator(this.getBuffer()).start();    //Start simulator thread
         System.out.println("INFO: Started sensor");
 
-        System.out.println("INFO: Contacting gateway ...");
-        this.sendMessageToGateway(ADD_NODE_PATH, this.toBean());    //tells gateway that the node is active, the response fills the network list (ordered by id)
-
         System.out.println("INFO: Starting GRPC server ...");
         this.startGRPCServer();                          //Starts a thread with grpc server
 
-        //give a bit of time to the server thread to start, needed if lots of nodes start on the same machine
+        //give a bit of time to the server thread to start, needed if lots of nodes start on the same machine or double port values are inserted
         try {
-            Thread.sleep(1500);
+            Thread.sleep(700);
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
+
+        System.out.println("INFO: Contacting gateway ...");
+        this.sendMessageToGateway(ADD_NODE_PATH, this.toBean());    //tells gateway that the node is active, the response fills the network list (ordered by id)
 
         this.broadcastMessage("join");         //broadcast a hello message to the network
 
         MainGUI.spawnGUI(this.getId(), this);
 
+        //if user wants to kill the node from console
         Scanner scanner = new Scanner(System.in);
         scanner.nextLine();
 
@@ -93,18 +96,20 @@ public class Node {
 
     }
 
+    //timer needed only for not controlled crashes (not happening in this version, hence, timer won't go off )
     public void restartTimer(){
-        if(this.timerTask != null) {
-            this.timerTask.cancel();
+        if(this.timer != null) {
+            this.timer.cancel();
         }
-        this.timerTask = new TimerTask(){
+        this.timer = new Timer("token timeout");
+        this.timer.schedule(new TimerTask(){
             @Override
             public void run(){
                 if(isHighest()){
                     spawnToken();
                 }
             }
-        };
+        }, TIMER_CAP);
     }
 
     public void leaveNetwork(){
@@ -146,8 +151,12 @@ public class Node {
         switch (path) {
             case ADD_NODE_PATH:
                 String nodesListJSON = "";
-                response  = resource.accept(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, sender.toJSONObject());
-
+                try {
+                    response = resource.accept(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, sender.toJSONObject());
+                }catch (com.sun.jersey.api.client.ClientHandlerException e){
+                    System.err.println("INFO: Server is not available, closing...");
+                    System.exit(0);
+                }
                 while (response.getStatus() != 200) {
                     this.setId("" + new Random().nextInt(10000));
                     sender = this.toBean();
@@ -191,8 +200,12 @@ public class Node {
 
             case REMOVE_NODE_PATH :
                 System.out.println("INFO: Communicating node exit to gateway ...");
-                response = resource.accept(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, sender.toJSONObject());
-
+                try {
+                    response = resource.accept(MediaType.APPLICATION_JSON_TYPE).post(ClientResponse.class, sender.toJSONObject());
+                }catch (com.sun.jersey.api.client.ClientHandlerException e){
+                    System.err.println("INFO: Server is not available, closing...");
+                    System.exit(0);
+                }
                 if(response.getStatus() != 200){
                     System.err.println("SERVER ERROR - Error code: " + response.getStatus());
                 }else{
@@ -207,6 +220,9 @@ public class Node {
                 } catch (JSONException e) {
                     System.err.println("NODE ERROR - Error occurred while generating a JSONObject from Measurement");
                     e.printStackTrace();
+                } catch (com.sun.jersey.api.client.ClientHandlerException e){
+                    System.err.println("INFO: Server is not available, closing...");
+                    System.exit(0);
                 }
                 assert response != null;
                 if(response.getStatus() != 200){
@@ -331,6 +347,10 @@ public class Node {
 
     public int getPort() {
         return port;
+    }
+
+    public void setPort(int n){
+        this.port = n;
     }
 
     public String getAddr() {

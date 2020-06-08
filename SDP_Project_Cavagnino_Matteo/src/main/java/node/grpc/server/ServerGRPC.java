@@ -4,10 +4,13 @@ import io.grpc.Server;
 import io.grpc.ServerBuilder;
 import node.grpc.services.NodeServicesImpl;
 import java.io.IOException;
+import java.net.BindException;
+import java.util.Random;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 
 public class ServerGRPC implements Runnable {
-    private final int port;
+    private int port;
     private Server server;
     private final node.Node node;
 
@@ -18,21 +21,28 @@ public class ServerGRPC implements Runnable {
 
     @Override
     public void run() {
-        server = ServerBuilder.forPort(port).addService(new NodeServicesImpl(this.node)).build();
+        boolean running = false;
+        server = null;
+
+        while(!running) {
+            try {
+                server = ServerBuilder.forPort(port).addService(new NodeServicesImpl(this.node)).build().start();
+                System.out.println("INFO: GRPC Server started succesfully");
+                running = true;
+
+            } catch (IOException e) {
+                port = ThreadLocalRandom.current().nextInt(1025, 65535);
+            }
+        }
+
+        node.setPort(port);
 
         try {
-            server.start();
-            System.out.println("INFO: GRPC Server started succesfully");
             server.awaitTermination();
-
-        } catch (IOException | InterruptedException e) {
+        } catch (InterruptedException e) {
             System.err.println("NODE GRPC SERVER ERROR");
-            if (e.getClass().equals(IOException.class)) {
-                System.err.println("A problem occurred while starting the server...");
-            } else {
-                System.err.println("A problem occurred while waiting for the server termination...");
-            }
-            e.printStackTrace();
+            System.err.println("A problem occurred while waiting for the server termination...");
+
         }
     }
 

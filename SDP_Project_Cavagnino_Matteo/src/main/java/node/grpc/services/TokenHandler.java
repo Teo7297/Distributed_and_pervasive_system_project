@@ -16,6 +16,7 @@ public class TokenHandler implements Runnable{
     private final Token token;
     private final Node node;
 
+
     public TokenHandler(Token token, Node node){
         this.token = token;
         this.node = node;
@@ -54,9 +55,10 @@ public class TokenHandler implements Runnable{
             }else if (!node.isExitFlag()){
                 //This is the last node needed, send to gateway
                 receivedList.add(node.getBuffer().getMean());
-                node.sendMessageToGateway(Node.PUBLISH_MEASUREMENT_PATH, node.toBean(), getMean(receivedList));
+                Measurement toPublish = getMean(receivedList);
+                node.sendMessageToGateway(Node.PUBLISH_MEASUREMENT_PATH, node.toBean(), toPublish);
                 newToken = Objects.Token.newBuilder().addAllParticipants(node.getIdList()).build();
-                System.out.println("INFO: Token sent to gateway");
+                System.out.println("INFO: Token sent to gateway, published value : { " + toPublish + " }");
 
             }else{
                 node.leaveNetwork();

@@ -10,6 +10,8 @@ import java.io.IOException;
 
 public class NodeServicesImpl extends NodeServicesImplBase {
     private final node.Node node;
+    private final boolean test = true;
+    private final boolean test2  = false;
 
     public NodeServicesImpl(node.Node node){
         this.node = node;
@@ -49,7 +51,28 @@ public class NodeServicesImpl extends NodeServicesImplBase {
 
         node.restartTimer();
 
+        if(test) {
+            try {
+                System.out.println("TEST INFO: Received token");
+                for(String s : token.getParticipantsList()){
+                    System.out.println("Partecipant to current token : " + s);
+                }
+                System.out.println("This is the current state of the token:");
+                for(String s : token.getMeasurementsList()){
+                    System.out.println(s);
+                }
+                Thread.sleep(5000);
+                System.out.println("TEST INFO: Sending token");
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
         new Thread(new TokenHandler(token, node)).start();
+
+        if(test2){
+            System.out.println("token send to next node");
+        }
 
         responseObserver.onNext(Message.newBuilder().setMessage("ok").build());
 
