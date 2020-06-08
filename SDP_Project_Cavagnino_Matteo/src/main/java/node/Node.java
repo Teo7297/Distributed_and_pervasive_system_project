@@ -59,10 +59,34 @@ public class Node {
 
     public static void main(String[] args) {
         //Node node = new Node("" + new Random().nextInt(10000), ThreadLocalRandom.current().nextInt(1025, 65535));           //random parameters
-        Node node = new Node(args[0], Integer.parseInt(args[1]));
+        //Node node = new Node(args[0], Integer.parseInt(args[1]));                                                           //args parameters
+        Node node = askParameters();                                                                                          //get parameters from input
 
         node.setup();
+    }
 
+    private static Node askParameters() {
+        Scanner scanner = new Scanner(System.in);
+        System.out.println("To initialize node, please insert ID and PORT separated by a space (e.g. 11 8081)");
+        String input = null;
+        Node newNode = null;
+
+        while (input == null) {
+            input = scanner.nextLine();
+            String[] pair = input.split(" ");
+            try {
+                String i = "" + Integer.parseInt(pair[0]);
+                int p = Integer.parseInt(pair[1]);
+                if (p < 1025 || p > 65535) {
+                    throw new NumberFormatException();
+                }
+                newNode = new Node(i, p);
+            } catch (IndexOutOfBoundsException | NumberFormatException e) {
+                input = null;
+                System.err.println("ERROR: Please insert a valid pair of numbers");
+            }
+        }
+        return newNode;
     }
 
     public void setup() {
