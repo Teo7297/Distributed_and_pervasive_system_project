@@ -10,8 +10,7 @@ Nodi:
 	
 	P.S
 
-		- è possibile terminare i nodi sia inserendo un qualsiasi input da tastiera sulla console sia cliccando il pulsante
-		della piccola GUI.
+		- è possibile terminare i nodi inserendo un qualsiasi input da tastiera sulla console
 		- è possibile settare nelle classi node.services.TokenHandler e node.services.NodeServicesImpl dei campi test per rallentare lo scambio dei token
 	
 Analyst: 

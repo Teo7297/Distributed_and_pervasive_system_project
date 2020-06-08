@@ -4,7 +4,6 @@ import com.objects.Objects;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import node.gui.MainGUI;
 import node.simulators.BufferImpl;
 import node.simulators.Measurement;
 import node.simulators.PM10Simulator;
@@ -110,9 +109,7 @@ public class Node {
 
         this.broadcastMessage("join");         //broadcast a hello message to the network
 
-        MainGUI.spawnGUI(this.getId(), this);
-
-        //if user wants to kill the node from console
+        System.err.println("PRESS ENTER TO KILL THIS NODE");
         Scanner scanner = new Scanner(System.in);
         scanner.nextLine();
 

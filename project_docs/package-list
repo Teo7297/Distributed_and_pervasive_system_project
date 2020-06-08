@@ -5,7 +5,6 @@ node
 node.grpc.client
 node.grpc.server
 node.grpc.services
-node.gui
 node.simulators
 serverREST.handleRequests
 serverREST.server
