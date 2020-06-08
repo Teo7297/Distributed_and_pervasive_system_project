@@ -73,6 +73,6 @@ public class Measurement {
         while(p2.length() < 12){
             p2.append(" ");
         }
-        return  p1 + " ] - Timestamp: [ " + p2 + " ]";
+        return  p1 + " ] - Timestamp: [ " + p2 + " UTC ]";
     }
 }
