@@ -13,19 +13,15 @@ public class TokenClient {
         ManagedChannel channel = ManagedChannelBuilder.forAddress(target.getIpaddr(), target.getPort()).usePlaintext(true).build();
         //create a new stub
         NodeServicesGrpc.NodeServicesStub stub = NodeServicesGrpc.newStub(channel);
-
-        //prepare the stream to write on
+        //send token to next node's server
         stub.sendToken(token, new StreamObserver<Message>() {
 
             public void onNext(Message message) {
                 String[] ackMsg = message.getMessage().split("-");
 
-                switch (ackMsg[0]) {
-                    case "ok":
-                        break;
-
-                    default:
-                        System.err.println("NODE CLIENT ERROR - Received a wrongly formatted Ack message\nMessage |=> " + ackMsg[0] + " " + ackMsg[1]);
+                if ("ok".equals(ackMsg[0])) {
+                } else {
+                    System.err.println("NODE CLIENT ERROR - Received a wrongly formatted Ack message\nMessage |=> " + ackMsg[0] + " " + ackMsg[1]);
                 }
             }
 

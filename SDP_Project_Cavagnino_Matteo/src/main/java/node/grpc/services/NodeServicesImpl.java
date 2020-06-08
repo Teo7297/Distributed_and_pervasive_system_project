@@ -10,8 +10,8 @@ import java.io.IOException;
 
 public class NodeServicesImpl extends NodeServicesImplBase {
     private final node.Node node;
-    private final boolean test = true;
-    private final boolean test2  = false;
+    private final boolean test = false;
+    private final boolean test2 = false;
 
     public NodeServicesImpl(node.Node node){
         this.node = node;
@@ -48,6 +48,9 @@ public class NodeServicesImpl extends NodeServicesImplBase {
 
     @Override
     public void sendToken(Token token, StreamObserver<Message> responseObserver){
+        //acks the token received
+        responseObserver.onNext(Message.newBuilder().setMessage("ok").build());
+        responseObserver.onCompleted();
 
         node.restartTimer();
 
@@ -71,11 +74,7 @@ public class NodeServicesImpl extends NodeServicesImplBase {
         new Thread(new TokenHandler(token, node)).start();
 
         if(test2){
-            System.out.println("token send to next node");
+            System.out.println("token sent to next node : " + node.getTarget());
         }
-
-        responseObserver.onNext(Message.newBuilder().setMessage("ok").build());
-
-        responseObserver.onCompleted();
     }
 }

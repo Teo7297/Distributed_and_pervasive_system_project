@@ -16,6 +16,9 @@ public class TokenHandler implements Runnable{
     private final Token token;
     private final Node node;
 
+    private final boolean test = false;
+
+
 
     public TokenHandler(Token token, Node node){
         this.token = token;
@@ -24,6 +27,8 @@ public class TokenHandler implements Runnable{
 
     @Override
     public void run() {
+
+
         List<String> peersInvolved = new ArrayList<>(token.getParticipantsList());
 
         if(peersInvolved.contains(node.getId()) && node.getBuffer().isReady()){
@@ -43,6 +48,13 @@ public class TokenHandler implements Runnable{
                             .addMeasurements(node.getBuffer().getMean())
                             .build();
                     TokenClient.sendToken(newToken, node.getTarget());
+                    if(test) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
                     System.exit(0);
                 }else{
                 newToken = Objects.Token.newBuilder()
@@ -65,6 +77,13 @@ public class TokenHandler implements Runnable{
                 node.getIdList().remove(node.getId());
                 newToken = Objects.Token.newBuilder().addAllParticipants(node.getIdList()).build();
                 TokenClient.sendToken(newToken, node.getTarget());
+                if(test) {
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
                 System.exit(0);
             }
 

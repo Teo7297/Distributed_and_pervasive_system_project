@@ -28,7 +28,7 @@ public class Node {
     private static final String ADD_NODE_PATH = "http://localhost:1337/nodes/add";
     private static final String REMOVE_NODE_PATH = "http://localhost:1337/nodes/remove";
     public static final String PUBLISH_MEASUREMENT_PATH = "http://localhost:1337/measurements/publish";
-    private static final long TIMER_CAP = 100000L;
+    private static final long TIMER_CAP = 10000000L;
 
     private final BufferImpl buffer;
     private final List<beans.Node> network;
@@ -112,7 +112,7 @@ public class Node {
         }, TIMER_CAP);
     }
 
-    public void leaveNetwork(){
+    public void leaveNetwork() {
         this.broadcastMessage("leave");
         this.sendMessageToGateway(REMOVE_NODE_PATH, this.toBean());
         this.serverGRPC.shutServer();
