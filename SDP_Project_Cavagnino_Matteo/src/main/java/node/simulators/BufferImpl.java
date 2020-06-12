@@ -1,10 +1,12 @@
 package node.simulators;
 
+import java.util.Arrays;
+
 public class BufferImpl implements Buffer {
     private static final int BUFFER_SIZE = 12;
     private static final int WINDOW_SIZE = 12;
     private static final int OVERLAPPING = 50;    /* settable % of overlapping */
-    private static final int LIMIT = (OVERLAPPING * BUFFER_SIZE) / 100;
+    private static final int LIMIT = (OVERLAPPING * WINDOW_SIZE) / 100;     //TYPO NEL PROGETTO!
 
     private final Measurement[] buffer, window;
     private int upperBound, lowerBound, overlap;
@@ -26,7 +28,9 @@ public class BufferImpl implements Buffer {
         if(upperBound - lowerBound  >= WINDOW_SIZE || lowerBound > upperBound) {
             lowerBound = (lowerBound + 1) % (BUFFER_SIZE);
         }
-
+        //System.out.println("Window: " + Arrays.toString(window));               //AGGIUNTE 2 PRINT PER VISUALIZZARE LO STATO DEGLI ARRAY
+        //System.out.println("Buffer: " + Arrays.toString(buffer));
+        System.out.println(upperBound + " " + lowerBound);
         if(overlap == LIMIT - 1){
             double sum = 0;
             int count = 0;
