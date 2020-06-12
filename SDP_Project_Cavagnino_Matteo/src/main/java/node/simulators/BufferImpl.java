@@ -3,15 +3,15 @@ package node.simulators;
 import java.util.Arrays;
 
 public class BufferImpl implements Buffer {
-    private static final int BUFFER_SIZE = 12;
+    private static final int BUFFER_SIZE = 24;
     private static final int WINDOW_SIZE = 12;
     private static final int OVERLAPPING = 50;    /* settable % of overlapping */
-    private static final int LIMIT = (OVERLAPPING * WINDOW_SIZE) / 100;     //TYPO NEL PROGETTO!
+    private static final int LIMIT = (OVERLAPPING * WINDOW_SIZE) / 100;
 
     private final Measurement[] buffer, window;
     private int upperBound, lowerBound, overlap;
     private Measurement mean;
-    private boolean meanReady;
+    private volatile boolean meanReady;
 
     public BufferImpl(){
         this.window =  new Measurement[WINDOW_SIZE];
@@ -30,7 +30,7 @@ public class BufferImpl implements Buffer {
         }
         //System.out.println("Window: " + Arrays.toString(window));               //AGGIUNTE 2 PRINT PER VISUALIZZARE LO STATO DEGLI ARRAY
         //System.out.println("Buffer: " + Arrays.toString(buffer));
-        System.out.println(upperBound + " " + lowerBound);
+        //System.out.println(upperBound + " " + lowerBound);
         if(overlap == LIMIT - 1){
             double sum = 0;
             int count = 0;
@@ -43,9 +43,9 @@ public class BufferImpl implements Buffer {
             //if another mean is ready before it has been polled, make the mean of the 2
             if (meanReady){
                 double partialAvg = sum/count;
-                mean = new Measurement(window[0].getId(), window[0].getType(), (partialAvg + mean.getValue()) / 2, m.getTimestamp());
+                setMean(new Measurement(window[0].getId(), window[0].getType(), (partialAvg + this.getMeanM().getValue()) / 2, m.getTimestamp()));
             }
-            mean = new Measurement(window[0].getId(), window[0].getType(), sum / count, m.getTimestamp());
+            setMean(new Measurement(window[0].getId(), window[0].getType(), sum / count, m.getTimestamp()));
             meanReady = true;
             System.out.println("INFO: Mean ready");
         }
@@ -56,7 +56,13 @@ public class BufferImpl implements Buffer {
         return meanReady;
     }
 
-    public String getMean(){
+    public synchronized void setMean(Measurement mean){
+        this.mean = mean;
+    }
+    private synchronized Measurement getMeanM(){
+        return this.mean;
+    }
+    public synchronized String getMean(){
         meanReady = false;
         return "{\"id\":" + mean.getId() + ", \"type\":" + mean.getType() + ", \"value\":" + mean.getValue() + ", \"timestamp\":" + mean.getTimestamp() + "}";
     }

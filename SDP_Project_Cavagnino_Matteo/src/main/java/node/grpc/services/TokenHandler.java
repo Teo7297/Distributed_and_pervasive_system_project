@@ -4,10 +4,8 @@ import com.objects.Objects;
 import node.Node;
 import node.grpc.client.TokenClient;
 import com.objects.Objects.*;
-
 import java.util.ArrayList;
 import java.util.List;
-
 import node.simulators.Measurement;
 import org.codehaus.jettison.json.JSONException;
 import org.codehaus.jettison.json.JSONObject;
@@ -67,7 +65,7 @@ public class TokenHandler implements Runnable{
             }else if (!node.isExitFlag()){
                 //This is the last node needed, send to gateway
                 receivedList.add(node.getBuffer().getMean());
-                Measurement toPublish = getMean(receivedList);
+                Measurement toPublish = computeMean(receivedList);
                 node.sendMessageToGateway(Node.PUBLISH_MEASUREMENT_PATH, node.toBean(), toPublish);
                 newToken = Objects.Token.newBuilder().addAllParticipants(node.getIdList()).build();
                 System.out.println("INFO: Token sent to gateway, published value : { " + toPublish + " }");
@@ -96,7 +94,7 @@ public class TokenHandler implements Runnable{
         }
     }
 
-    private static Measurement getMean(List<String> ms){
+    private static Measurement computeMean(List<String> ms){
         double sum = 0;
         long ts = 0;
         String type = null;

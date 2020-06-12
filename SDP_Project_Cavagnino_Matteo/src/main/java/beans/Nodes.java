@@ -62,7 +62,7 @@ public class Nodes {
 
     }
 
-    public List<Node> getNodesList() {  //metodo usato implicitamente dal server per avere il riferimento non serve sync
+    public synchronized List<Node> getNodesList() {
         return nodesList;
     }
 }

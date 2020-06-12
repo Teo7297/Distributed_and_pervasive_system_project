@@ -36,8 +36,8 @@ public class Node {
     private String id;
     private String addr;
     private ServerGRPC serverGRPC;
-    private beans.Node target;
-    private boolean exitFlag;
+    private volatile beans.Node target;
+    private volatile boolean exitFlag;
     private Timer timer;
 
     public Node(String id, int port) {
@@ -261,7 +261,7 @@ public class Node {
         System.err.println("INFO: New Token spawned!!");
     }
 
-    public boolean isHighest(){
+    public synchronized boolean isHighest(){
         for(beans.Node n : this.getNetworkCopy()){
             if(Integer.parseInt(this.getId()) < Integer.parseInt(n.getId())){
                 return false;
@@ -327,7 +327,7 @@ public class Node {
         }
     }
 
-    public void setTarget(){
+    public synchronized void setTarget(){
         List<beans.Node> ntwCopy = this.getNetworkCopy();
         for(int i = 0; i < ntwCopy.size(); i++){
             if(ntwCopy.get(i).getId().equals(this.id)){
@@ -378,7 +378,7 @@ public class Node {
         return addr;
     }
 
-    public BufferImpl getBuffer() {
+    public synchronized BufferImpl getBuffer() {
         return buffer;
     }
 
@@ -390,7 +390,7 @@ public class Node {
         this.target = target;
     }
 
-    public List<String> getIdList() {
+    public synchronized List<String> getIdList() {
         return idList;
     }
 

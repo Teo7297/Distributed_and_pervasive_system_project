@@ -1,0 +1,5 @@
+spiegare subito che il token viene fermato all uscita cosi chi esce puo togliersi dalla lista id e
+    invia anche un ultima misurazione
+(magari riusciamo a fixarlo con grpc)
+
+problema del target con entrata + uscita (che non si crea porca eva perche è impossibile ma ok)

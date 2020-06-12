@@ -29,7 +29,7 @@ public class Measurements {
         measurementList.add(m);
     }
 
-    public Measurement[] getLastMeasurements(int n) {
+    public synchronized Measurement[] getLastMeasurements(int n) {
         if (n > measurementList.size()){
             n = measurementList.size();
         }
@@ -41,7 +41,7 @@ public class Measurements {
         return result;
     }
 
-    public String[] getSDMean(int n) {
+    public synchronized String[] getSDMean(int n) {
         if (n > measurementList.size()){
             n = measurementList.size();
         }
@@ -52,21 +52,16 @@ public class Measurements {
             values[j++] = value.getValue();
         }
         double[] result = calculateSDMean(values);
-
         return new String[]{String.valueOf(result[0]), String.valueOf(result[1])};
-
     }
-
+    //NON SERVE SYNC QUI
     private static double[] calculateSDMean(double[] numArray) {
         double standardDeviation = 0.0;
         int length = numArray.length;
-
         double mean = calculateMean(numArray);
-
         for(double num: numArray) {
             standardDeviation += Math.pow(num - mean, 2);
         }
-
         return new double[]{Math.sqrt(standardDeviation/length), mean};
     }
 
