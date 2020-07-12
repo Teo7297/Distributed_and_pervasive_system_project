@@ -33,9 +33,9 @@ public class Broadcaster implements Runnable{
                 String[] ackMsg = message.getMessage().split("-");
 
                 //useful in future to get different types of acks
-                if ("ok".equals(ackMsg[0])) {
-                } else {
-                    System.err.println("NODE CLIENT ERROR - Received a wrongly formatted Ack message\nMessage |=> " + ackMsg[0] + " " + ackMsg[1]);
+                if (!"ok".equals(ackMsg[0])) {
+                    sender.removeNodeFromNetwork(target);
+                    System.err.println("NODE CLIENT ERROR - Received an error Ack message\nMessage |=> " + ackMsg[0] + " " + ackMsg[1]);
                 }
             }
 

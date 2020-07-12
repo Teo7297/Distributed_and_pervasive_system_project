@@ -41,7 +41,11 @@ public class NodeServicesImpl extends NodeServicesImplBase {
                 break;
         }
         //send ack response
-        responseObserver.onNext(Message.newBuilder().setMessage("ok").build());
+        if (node.isExitFlag()){
+            responseObserver.onNext(Message.newBuilder().setMessage("ko-node is leaving").build());
+        }else {
+            responseObserver.onNext(Message.newBuilder().setMessage("ok").build());
+        }
         //closes
         responseObserver.onCompleted();
     }

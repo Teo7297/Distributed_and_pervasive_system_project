@@ -36,7 +36,7 @@ public class Node {
     private String id;
     private String addr;
     private ServerGRPC serverGRPC;
-    private volatile beans.Node target;
+    private beans.Node target;
     private volatile boolean exitFlag;
     private Timer timer;
 
@@ -382,11 +382,11 @@ public class Node {
         return buffer;
     }
 
-    public beans.Node getTarget(){
+    public synchronized beans.Node getTarget(){
         return this.target;
     }
 
-    public void setTarget(beans.Node target){
+    public synchronized void setTarget(beans.Node target){
         this.target = target;
     }
 
