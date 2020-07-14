@@ -5,52 +5,45 @@ import java.util.Arrays;
 public class BufferImpl implements Buffer {
     private static final int BUFFER_SIZE = 24;
     private static final int WINDOW_SIZE = 12;
-    private static final int OVERLAPPING = 50;    /* settable % of overlapping */
-    private static final int LIMIT = (OVERLAPPING * WINDOW_SIZE) / 100;
 
-    private final Measurement[] buffer, window;
-    private int upperBound, lowerBound, overlap;
+    private final Measurement[] buffer;
+    private int upperBound, lowerBound, next;
     private Measurement mean;
     private volatile boolean meanReady;
 
     public BufferImpl(){
-        this.window =  new Measurement[WINDOW_SIZE];
         this.buffer = new Measurement[BUFFER_SIZE];
-        this.upperBound = 0; this.lowerBound = 0; this.overlap = -LIMIT -1;
+        this.upperBound = 0; this.lowerBound = 0;
+        this.next = WINDOW_SIZE-1;
     }
 
     @Override
-    public void addMeasurement(Measurement m) {
+    public synchronized void addMeasurement(Measurement m) {
         buffer[upperBound] = m;
-        window[upperBound % WINDOW_SIZE] = buffer[upperBound];
-        overlap = (overlap + 1) % LIMIT;
-        upperBound = (upperBound + 1) % (BUFFER_SIZE);
-        if(upperBound - lowerBound  >= WINDOW_SIZE || lowerBound > upperBound) {
-            lowerBound = (lowerBound + 1) % (BUFFER_SIZE);
-        }
-        //System.out.println("Window: " + Arrays.toString(window));               //AGGIUNTE 2 PRINT PER VISUALIZZARE LO STATO DEGLI ARRAY
         //System.out.println("Buffer: " + Arrays.toString(buffer));
         //System.out.println(upperBound + " " + lowerBound);
-        if(overlap == LIMIT - 1){
+        if (upperBound == next){
+            next = (next + (WINDOW_SIZE/2)) % BUFFER_SIZE;
             double sum = 0;
             int count = 0;
-            for (Measurement e : window){
-                if(e != null){
-                    sum += e.getValue();
+            for(int e = 0; e <= WINDOW_SIZE; e++){
+                if(buffer[(e + lowerBound) % BUFFER_SIZE] != null){
+                    sum += buffer[(e + lowerBound) % BUFFER_SIZE].getValue();
                     count++;
                 }
             }
             //if another mean is ready before it has been polled, make the mean of the 2
             if (meanReady){
                 double partialAvg = sum/count;
-                setMean(new Measurement(window[0].getId(), window[0].getType(), (partialAvg + this.getMeanM().getValue()) / 2, m.getTimestamp()));
+                setMean(new Measurement(buffer[0].getId(), buffer[0].getType(), (partialAvg + this.getMeanM().getValue()) / 2, m.getTimestamp()));
             }
-            setMean(new Measurement(window[0].getId(), window[0].getType(), sum / count, m.getTimestamp()));
+            setMean(new Measurement(buffer[0].getId(), buffer[0].getType(), sum / count, m.getTimestamp()));
             meanReady = true;
+            lowerBound = (lowerBound + (WINDOW_SIZE/2)) % BUFFER_SIZE;
             System.out.println("INFO: Mean ready");
         }
+        upperBound = (upperBound + 1) % BUFFER_SIZE;
     }
-    
 
     public boolean isReady() {
         return meanReady;

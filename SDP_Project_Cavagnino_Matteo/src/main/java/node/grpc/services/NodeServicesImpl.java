@@ -56,13 +56,13 @@ public class NodeServicesImpl extends NodeServicesImplBase {
         responseObserver.onNext(Message.newBuilder().setMessage("ok").build());
         responseObserver.onCompleted();
 
-        node.restartTimer();
+        //node.restartTimer();
 
         if(test) {
             try {
                 System.out.println("TEST INFO: Received token");
                 for(String s : token.getParticipantsList()){
-                    System.out.println("Partecipant to current token : " + s);
+                    System.out.println("Partecipant to current token : id = [ " + s + " ]");
                 }
                 System.out.println("This is the current state of the token:");
                 for(String s : token.getMeasurementsList()){

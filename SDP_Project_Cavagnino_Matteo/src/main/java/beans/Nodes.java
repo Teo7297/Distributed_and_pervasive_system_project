@@ -31,7 +31,7 @@ public class Nodes {
         return instance;
     }
 
-    public int nodeNumber(){  //sync perchè potrebbero esserci inserimenti ed è meglio mandare all'analista il dato piu aggiornato
+    public synchronized int nodeNumber(){
         return nodesList.size();
     }
 

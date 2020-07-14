@@ -7,7 +7,7 @@ import io.grpc.stub.StreamObserver;
 
 public class TokenClient {
 
-    public static void sendToken(Token token, beans.Node target){
+    public static void sendToken(Token token, beans.Node target, node.Node node){
 
         //create a new channel
         ManagedChannel channel = ManagedChannelBuilder.forAddress(target.getIpaddr(), target.getPort()).usePlaintext(true).build();
@@ -18,10 +18,13 @@ public class TokenClient {
 
             public void onNext(Message message) {
                 String[] ackMsg = message.getMessage().split("-");
+                switch(ackMsg[0]){
+                    case "ok":
+                        break;
+                    // if the target left and somehow it didn't get registered
+                    default:
+                        node.removeNodeFromNetwork(target);
 
-                if ("ok".equals(ackMsg[0])) {
-                } else {
-                    System.err.println("NODE CLIENT ERROR - Received a wrongly formatted Ack message\nMessage |=> " + ackMsg[0] + " " + ackMsg[1]);
                 }
             }
 

@@ -16,8 +16,6 @@ public class TokenHandler implements Runnable{
 
     private final boolean test = false;
 
-
-
     public TokenHandler(Token token, Node node){
         this.token = token;
         this.node = node;
@@ -25,73 +23,114 @@ public class TokenHandler implements Runnable{
 
     @Override
     public void run() {
-
-
         List<String> peersInvolved = new ArrayList<>(token.getParticipantsList());
-
+        //TOKEN NEEDEd
         if(peersInvolved.contains(node.getId()) && node.getBuffer().isReady()){
             List<String> receivedList = new ArrayList<>(token.getMeasurementsList());
-            Objects.Token newToken;
-
-            //"remove" this id from the list
-            if(peersInvolved.size() > 1) {
-                peersInvolved.remove(node.getId());
-
-                if(node.isExitFlag()){
+            Objects.Token newToken = null;
+            System.out.println("INFO: Adding mean in the token ...");
+            //NEED TO EXIT
+            if(node.isExitFlag()){
+                //NOT LAST
+                if(peersInvolved.size() > 1) {
+                    peersInvolved.remove(node.getId());
                     node.leaveNetwork();
-                    node.getIdList().remove(node.getId());
                     newToken = Objects.Token.newBuilder()
                             .addAllParticipants(peersInvolved)
                             .addAllMeasurements(receivedList)
                             .addMeasurements(node.getBuffer().getMean())
                             .build();
-                    TokenClient.sendToken(newToken, node.getTarget());
-                    if(test) {
-                        try {
-                            Thread.sleep(1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                    }
-                    System.exit(0);
+                    //send modified token to target
+                    TokenClient.sendToken(newToken, node.getTarget(), node);
+                    //LAST
                 }else{
-                newToken = Objects.Token.newBuilder()
-                        .addAllParticipants(peersInvolved)
-                        .addAllMeasurements(receivedList)
-                        .addMeasurements(node.getBuffer().getMean())
-                        .build();
-                System.out.println("INFO: Adding mean in the token ...");
+                    node.leaveNetwork();
+                    node.getIdList().remove(node.getId());
+                    newToken = Objects.Token.newBuilder()
+                            .addAllParticipants(node.getIdList())
+                            .build();
+                    TokenClient.sendToken(newToken, node.getTarget(), node);
+                    receivedList.add(node.getBuffer().getMean());
+                    Measurement toPublish = computeMean(receivedList);
+                    node.sendMessageToGateway(Node.PUBLISH_MEASUREMENT_PATH, node.toBean(), toPublish);
+                    System.out.println("INFO: Before exiting one last value has been sent to the gateway, published value : { " + toPublish + " }");
+                    //send modified token to target
                 }
-            }else if (!node.isExitFlag()){
-                //This is the last node needed, send to gateway
-                receivedList.add(node.getBuffer().getMean());
-                Measurement toPublish = computeMean(receivedList);
-                node.sendMessageToGateway(Node.PUBLISH_MEASUREMENT_PATH, node.toBean(), toPublish);
-                newToken = Objects.Token.newBuilder().addAllParticipants(node.getIdList()).build();
-                System.out.println("INFO: Token sent to gateway, published value : { " + toPublish + " }");
-
-            }else{
-                node.leaveNetwork();
-                node.getIdList().remove(node.getId());
-                newToken = Objects.Token.newBuilder().addAllParticipants(node.getIdList()).build();
-                TokenClient.sendToken(newToken, node.getTarget());
                 if(test) {
                     try {
-                        Thread.sleep(1000);
+                        Thread.sleep(5000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
                 }
                 System.exit(0);
+
+                //DON'T NEED TO EXIT
+            }else{
+                //NOT LAST
+                if(peersInvolved.size() > 1) {
+                    peersInvolved.remove(node.getId());
+                    newToken = Objects.Token.newBuilder()
+                            .addAllParticipants(peersInvolved)
+                            .addAllMeasurements(receivedList)
+                            .addMeasurements(node.getBuffer().getMean())
+                            .build();
+                    //LAST
+                }else{
+                    newToken = Objects.Token.newBuilder()
+                            .addAllParticipants(node.getIdList())
+                            .build();
+                    receivedList.add(node.getBuffer().getMean());
+                    Measurement toPublish = computeMean(receivedList);
+                    node.sendMessageToGateway(Node.PUBLISH_MEASUREMENT_PATH, node.toBean(), toPublish);
+                    System.out.println("INFO: Value has been sent to the gateway, published value : { " + toPublish + " }");
+                }
             }
+            //send modified token to target
+            TokenClient.sendToken(newToken, node.getTarget(), node);
 
-            //send modified token
-            TokenClient.sendToken(newToken, node.getTarget());
-
+            //TOKEN NOT NEEDED
         }else{
-            //nothing to add, sends the received token as it is
-            TokenClient.sendToken(token, node.getTarget());
+            //NEED TO EXIT
+            if(node.isExitFlag()){
+                Objects.Token newToken = null;
+                List<String> receivedList = new ArrayList<>(token.getMeasurementsList());
+                node.leaveNetwork();
+                if(peersInvolved.size() > 1 || !peersInvolved.get(0).equals(node.getId()) ) {
+                    peersInvolved.remove(node.getId());
+                    newToken = Objects.Token.newBuilder()
+                            .addAllParticipants(peersInvolved)
+                            .addAllMeasurements(receivedList)
+                            .build();
+                }else{
+                    //this was the last missing, need to calculate and send the mean anyways...
+                    if(receivedList.size() > 0) {
+                        Measurement toPublish = computeMean(receivedList);
+                        node.sendMessageToGateway(Node.PUBLISH_MEASUREMENT_PATH, node.toBean(), toPublish);
+                        node.getIdList().remove(node.getId());
+                        System.out.println("INFO: Before exiting one last value has been sent to the gateway, published value : { " + toPublish + " }");
+                    }
+                    newToken = Objects.Token.newBuilder()
+                            .addAllParticipants(node.getIdList())
+                            .addAllMeasurements(receivedList)
+                            .build();
+                }
+                TokenClient.sendToken(newToken, node.getTarget(), node);
+                if(test) {
+                    try {
+                        Thread.sleep(5000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                System.exit(0);
+
+                //DON'T NEED TO EXIT
+            }else{
+                TokenClient.sendToken(token, node.getTarget(), node);
+            }
         }
+
     }
 
     private static Measurement computeMean(List<String> ms){

@@ -27,7 +27,7 @@ public class Node {
     private static final String ADD_NODE_PATH = "http://localhost:1337/nodes/add";
     private static final String REMOVE_NODE_PATH = "http://localhost:1337/nodes/remove";
     public static final String PUBLISH_MEASUREMENT_PATH = "http://localhost:1337/measurements/publish";
-    private static final long TIMER_CAP = 10000000L;
+    //private static final long TIMER_CAP = 10000000L;
 
     private final BufferImpl buffer;
     private final List<beans.Node> network;
@@ -116,7 +116,7 @@ public class Node {
         this.setExitFlag(true);
 
     }
-
+    /*
     //timer needed only for not controlled crashes (not happening in this version, hence, timer won't go off )
     public void restartTimer(){
         if(this.timer != null) {
@@ -131,7 +131,7 @@ public class Node {
                 }
             }
         }, TIMER_CAP);
-    }
+    }*/
 
     public void leaveNetwork() {
         this.broadcastMessage("leave");
@@ -200,7 +200,7 @@ public class Node {
                         this.setTarget(this.toBean());
 
                         //starts own timer and spawns first token
-                        this.restartTimer();
+                        //this.restartTimer();
                         this.spawnToken();
 
                     } catch (IOException ioException) {
@@ -257,7 +257,7 @@ public class Node {
     }
 
     public void spawnToken(){
-        TokenClient.sendToken(Objects.Token.newBuilder().addParticipants(this.id).build(), this.getTarget());
+        TokenClient.sendToken(Objects.Token.newBuilder().addParticipants(this.id).build(), this.getTarget(), this);
         System.err.println("INFO: New Token spawned!!");
     }
 

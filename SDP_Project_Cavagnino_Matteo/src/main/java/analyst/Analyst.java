@@ -74,7 +74,11 @@ public class Analyst {
                 try (BufferedReader br = new BufferedReader(new InputStreamReader(response.getEntityInputStream()))) {
                     JSONResult = br.readLine();
                     wrapper = mapper.readValue(JSONResult, DataWrapper.class);
-                    System.out.println("This is the list of the last " + n + " measurements made by the network:\n");
+                    int listLen = wrapper.getList().length;
+                    if(n > listLen){
+                        System.out.println("There are not enough values on the server, all the values will be shown...");
+                    }
+                    System.out.println("This is the list of the last " + listLen + " measurements made by the network:\n");
                     for(Measurement m :  wrapper.getList()){
                         System.out.println(m);
                     }
