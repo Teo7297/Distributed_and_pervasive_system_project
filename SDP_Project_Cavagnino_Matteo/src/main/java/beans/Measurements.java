@@ -54,7 +54,8 @@ public class Measurements {
         double[] result = calculateSDMean(values);
         return new String[]{String.valueOf(result[0]), String.valueOf(result[1])};
     }
-    //NON SERVE SYNC QUI
+
+
     private static double[] calculateSDMean(double[] numArray) {
         double standardDeviation = 0.0;
         int length = numArray.length;
