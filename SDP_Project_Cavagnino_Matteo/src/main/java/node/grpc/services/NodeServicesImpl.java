@@ -57,7 +57,9 @@ public class NodeServicesImpl extends NodeServicesImplBase {
         responseObserver.onCompleted();
 
         //node.restartTimer();
-
+        if(test2){
+            System.out.println("Participants" + token.getParticipantsList());
+        }
         if(test) {
             try {
                 System.out.println("TEST INFO: Received token");
@@ -77,7 +79,7 @@ public class NodeServicesImpl extends NodeServicesImplBase {
 
         new Thread(new TokenHandler(token, node)).start();
 
-        if(test2){
+        if(test){
             System.out.println("token sent to next node : " + node.getTarget());
         }
     }

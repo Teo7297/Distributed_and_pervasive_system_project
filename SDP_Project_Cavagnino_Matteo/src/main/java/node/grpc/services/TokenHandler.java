@@ -45,9 +45,10 @@ public class TokenHandler implements Runnable{
                     //LAST
                 }else{
                     node.leaveNetwork();
-                    node.getIdList().remove(node.getId());
+                    List<String> toInsert = new ArrayList<>(node.getIdList());
+                    toInsert.remove(node.getId());
                     newToken = Objects.Token.newBuilder()
-                            .addAllParticipants(node.getIdList())
+                            .addAllParticipants(toInsert)
                             .build();
                     TokenClient.sendToken(newToken, node.getTarget(), node);
                     receivedList.add(node.getBuffer().getMean());
@@ -62,6 +63,11 @@ public class TokenHandler implements Runnable{
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                }
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
                 System.exit(0);
 
@@ -96,32 +102,45 @@ public class TokenHandler implements Runnable{
                 Objects.Token newToken = null;
                 List<String> receivedList = new ArrayList<>(token.getMeasurementsList());
                 node.leaveNetwork();
-                if(peersInvolved.size() > 1 || !peersInvolved.get(0).equals(node.getId()) ) {
+                //Se maggiore di 1 mi tolgo (se ci sono anchio) e inoltro
+                if(peersInvolved.size() > 1) {
                     peersInvolved.remove(node.getId());
                     newToken = Objects.Token.newBuilder()
                             .addAllParticipants(peersInvolved)
                             .addAllMeasurements(receivedList)
                             .build();
-                }else{
+                    TokenClient.sendToken(newToken, node.getTarget(), node);
+
+                //se l'ultimo ero io pubblico la media degli altri
+                }else if(peersInvolved.contains(node.getId())){
                     //this was the last missing, need to calculate and send the mean anyways...
                     if(receivedList.size() > 0) {
                         Measurement toPublish = computeMean(receivedList);
                         node.sendMessageToGateway(Node.PUBLISH_MEASUREMENT_PATH, node.toBean(), toPublish);
-                        node.getIdList().remove(node.getId());
                         System.out.println("INFO: Before exiting one last value has been sent to the gateway, published value : { " + toPublish + " }");
                     }
+                    List<String> toInsert = new ArrayList<>(node.getIdList());
+                    toInsert.remove(node.getId());
                     newToken = Objects.Token.newBuilder()
-                            .addAllParticipants(node.getIdList())
-                            .addAllMeasurements(receivedList)
+                            .addAllParticipants(toInsert)
                             .build();
+                    TokenClient.sendToken(newToken, node.getTarget(), node);
+                }else{
+                    TokenClient.sendToken(token, node.getTarget(), node);
                 }
-                TokenClient.sendToken(newToken, node.getTarget(), node);
+
+
                 if(test) {
                     try {
                         Thread.sleep(5000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                }
+                try {
+                    Thread.sleep(200);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
                 }
                 System.exit(0);
 
