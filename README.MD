@@ -1,3 +1,10 @@
+This is the project for the University exam of Distributed and Pervasive Systems.
+This project includes a java implementation of a fully flexible token ring architecture.
+Communication is executed using gRPC and nodes are able to join and leave the network at any time, granting secure concurrency between processes.
+
+
+#####################################################################################
+
 Progetto SDP by Cavagnino Matteo (mat. 961707)
 
 Per l'avvio delle varie funzioni:
